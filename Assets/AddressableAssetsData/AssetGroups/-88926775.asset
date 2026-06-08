@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: -88926775
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: -88926775
+  m_GUID: 8f9e0cb70f3a9174691b08c15ff994ff
+  m_SerializeEntries:
+  - m_GUID: 046417c8f61aca740b1850860c203b54
+    m_Address: Assets/Survivor_of_a_disaster/Scripts/Inventory/Cholopol_Tetris_Inventory_System/Art/Sprites/UI_Inventory/UI
+      Banner.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f0edfb30c23ffb41b22e046cf22109e
+    m_Address: Assets/Survivor_of_a_disaster/Scripts/Inventory/Cholopol_Tetris_Inventory_System/Art/Sprites/UI_Inventory/UI
+      Banner 1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 75d091f8836ff0d4590113a03e129fe3
+    m_Address: Assets/Survivor_of_a_disaster/Scripts/Inventory/Cholopol_Tetris_Inventory_System/Art/Icons/Close.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 43dcb17b2166b3943958baf33648b19c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 8eddee65f3e171e488346d2de189f879, type: 2}
+    - {fileID: 11400000, guid: 806927f4e021cae4d868fd8a9e77bc78, type: 2}

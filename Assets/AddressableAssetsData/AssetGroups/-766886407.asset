@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: -766886407
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: -766886407
+  m_GUID: c8ee3441717cc0f4f8a0db6a5278d5f9
+  m_SerializeEntries:
+  - m_GUID: 384a8d8fee817f141bd8d681fb0161d1
+    m_Address: Assets/Survivor_of_a_disaster/Scripts/Inventory/Cholopol_Tetris_Inventory_System/Fonts/Silver.ttf
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 43dcb17b2166b3943958baf33648b19c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: ff0331d6c49459441b1d27560d80a33d, type: 2}
+    - {fileID: 11400000, guid: 680a6f8e956c69a429f815ee2c7784f6, type: 2}

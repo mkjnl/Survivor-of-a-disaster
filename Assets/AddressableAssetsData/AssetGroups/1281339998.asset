@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: 1281339998
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: 1281339998
+  m_GUID: 96d8d8b817613554d97eb2424f6a9676
+  m_SerializeEntries:
+  - m_GUID: 18cd2a67ca7bb694390d6f854bec0e09
+    m_Address: Assets/Cholopol_Tetris_Inventory_System/Prefabs/Windows/ItemInformation.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 434467a1d81a32e4c83d91f339363388
+    m_Address: Assets/Cholopol_Tetris_Inventory_System/Art/Icons/DefaultIcon.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 43dcb17b2166b3943958baf33648b19c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: e638a8a7c774f9d479cfaf09bc5b1ba5, type: 2}
+    - {fileID: 11400000, guid: ec5e8bcde7d1ba0469b4ca49f13c39be, type: 2}
