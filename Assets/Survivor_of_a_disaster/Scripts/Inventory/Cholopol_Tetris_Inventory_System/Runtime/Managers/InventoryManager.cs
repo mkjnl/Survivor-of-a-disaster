@@ -20,6 +20,7 @@ using UnityEngine.InputSystem;
 using Cholopol.TIS.MVVM.ViewModels;
 using Cholopol.TIS.MVVM.Views;
 using Cholopol.TIS.Events;
+using StarterAssets;
 
 namespace Cholopol.TIS
 {
@@ -45,6 +46,8 @@ namespace Cholopol.TIS
         [Header("UI Toggle (Test)")]
         [SerializeField] private GameObject inventorySystemRoot;
         [SerializeField] private GameObject startPanel;
+        [SerializeField]
+        private StarterAssetsInputs starterAssetsInputs;
 
         public GameObject InventorySystemRoot => inventorySystemRoot;
         public InventoryPlacementConfig_SO PlacementConfig => placementConfig;
@@ -83,17 +86,42 @@ namespace Cholopol.TIS
 
             bool willOpen = !inventorySystemRoot.activeSelf;
 
+            // 控制玩家视角
+            if (starterAssetsInputs != null)
+            {
+                // 打开背包时禁用鼠标视角
+                starterAssetsInputs.cursorInputForLook = !willOpen;
+            }
+
+            // 打开背包 → 显示鼠标
+            if (willOpen)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            // 关闭背包 → 锁定鼠标
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+
+            // 关闭背包时回收 UI
             if (!willOpen)
             {
                 EventBus.Instance.Publish(EventNames.RecycleInventoryItemUI);
             }
+
+            // 切换背包显示状态
             inventorySystemRoot.SetActive(willOpen);
 
+            // 开始界面显示/隐藏
             if (startPanel != null)
             {
                 startPanel.SetActive(!willOpen);
             }
 
+            // 打开背包时生成 UI
             if (willOpen)
             {
                 EventBus.Instance.Publish(EventNames.InstantiateInventoryItemUI);
