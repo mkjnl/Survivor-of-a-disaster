@@ -59,10 +59,10 @@ namespace Cholopol.TIS
         private void Update()
         {
             // B 键 开关背包
-            if (Keyboard.current.bKey.wasPressedThisFrame)
-            {
-                ToggleInventorySystem();
-            }
+            // if (Keyboard.current.bKey.wasPressedThisFrame)
+            // {
+            //     ToggleInventorySystem();
+            // }
 
             // R 键 旋转物品
             if (Keyboard.current.rKey.wasPressedThisFrame)
@@ -80,7 +80,7 @@ namespace Cholopol.TIS
             HandleHighlight(selectedTetrisItemGridVM != null && selectedTetrisItemGridView != null);
         }
 
-        private void ToggleInventorySystem()
+        public void ToggleInventorySystem()
         {
             if (inventorySystemRoot == null) return;
 
