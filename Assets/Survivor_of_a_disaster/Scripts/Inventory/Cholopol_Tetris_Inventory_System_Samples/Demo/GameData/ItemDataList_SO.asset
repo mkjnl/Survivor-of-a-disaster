@@ -19,41 +19,6 @@ MonoBehaviour:
         m_TableCollectionName: ItemStrings
       m_TableEntryReference:
         m_KeyId: 0
-        m_Key: Item_1016_Name
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
-    localizedDescription:
-      m_TableReference:
-        m_TableCollectionName: ItemStrings
-      m_TableEntryReference:
-        m_KeyId: 0
-        m_Key: Item_1016_Desc
-      m_FallbackState: 0
-      m_WaitForCompletion: 0
-      m_LocalVariables: []
-    itemEntity: {fileID: 0}
-    tetrisPieceShape: 18
-    itemIcon: {fileID: 21300000, guid: 36bdb1d635c74c14f96ba89529f98294, type: 3}
-    gridUIPrefab: {fileID: 0}
-    inventorySlotType: 0
-    itemRarity: 3
-    itemDamage: 0
-    maxStack: 0
-    reloadTime: 0
-    yHeight: 3
-    xWidth: 3
-    weight: 0
-    ergonomics: 0
-    dir: 0
-    itemPrice: 0
-    sellPercentage: 0
-  - itemID: 1
-    localizedName:
-      m_TableReference:
-        m_TableCollectionName: ItemStrings
-      m_TableEntryReference:
-        m_KeyId: 0
         m_Key: Item_1017_Name
       m_FallbackState: 0
       m_WaitForCompletion: 0
@@ -67,7 +32,7 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    itemEntity: {fileID: 0}
+    itemEntity: {fileID: 1114229600894144988, guid: 13931a74ceed1f043b95ac89e0b50ef5, type: 3}
     tetrisPieceShape: 6
     itemIcon: {fileID: 21300000, guid: a7ba1e1534c185a4992294fc973a170c, type: 3}
     gridUIPrefab: {fileID: 0}
@@ -83,7 +48,7 @@ MonoBehaviour:
     dir: 0
     itemPrice: 0
     sellPercentage: 0
-  - itemID: 2
+  - itemID: 1
     localizedName:
       m_TableReference:
         m_TableCollectionName: ItemStrings
@@ -102,7 +67,7 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    itemEntity: {fileID: 0}
+    itemEntity: {fileID: 5135094773649816796, guid: 508312a52a2b63a42bf29f9c78235fb9, type: 3}
     tetrisPieceShape: 16
     itemIcon: {fileID: 21300000, guid: 9ebdb8c1f6b8ab8478ccb3a39acbdee7, type: 3}
     gridUIPrefab: {fileID: 0}
@@ -137,17 +102,17 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    itemEntity: {fileID: 0}
-    tetrisPieceShape: 6
-    itemIcon: {fileID: 21300000, guid: 77f800d2c08d33144a4bc9adad477db4, type: 3}
+    itemEntity: {fileID: 2962835927154795313, guid: 56bd3d894c1187649bc569e3a3d672c5, type: 3}
+    tetrisPieceShape: 0
+    itemIcon: {fileID: 21300000, guid: c0cf65cebe4595d48930ba084a60c92f, type: 3}
     gridUIPrefab: {fileID: 0}
-    inventorySlotType: 5
-    itemRarity: 4
+    inventorySlotType: 0
+    itemRarity: 0
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
-    yHeight: 2
-    xWidth: 2
+    yHeight: 1
+    xWidth: 1
     weight: 0
     ergonomics: 0
     dir: 0
@@ -172,17 +137,157 @@ MonoBehaviour:
       m_FallbackState: 0
       m_WaitForCompletion: 0
       m_LocalVariables: []
-    itemEntity: {fileID: 0}
-    tetrisPieceShape: 17
-    itemIcon: {fileID: 21300000, guid: b805c2170aaee8142b0e4ebbe92a7a3c, type: 3}
+    itemEntity: {fileID: 3240539615308529457, guid: a82aa3d3e8e28de489c5ca56e08bce86, type: 3}
+    tetrisPieceShape: 0
+    itemIcon: {fileID: 21300000, guid: eab798bcb68c7ae46b429385edb306e3, type: 3}
     gridUIPrefab: {fileID: 0}
-    inventorySlotType: 5
-    itemRarity: 5
+    inventorySlotType: 0
+    itemRarity: 0
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
-    yHeight: 3
+    yHeight: 1
+    xWidth: 1
+    weight: 0
+    ergonomics: 0
+    dir: 0
+    itemPrice: 0
+    sellPercentage: 0
+  - itemID: 5
+    localizedName:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_5_Name
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_5_Desc
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    itemEntity: {fileID: 2584884109742696891, guid: 83d2bf6f908b8c74ea72142c383d9203, type: 3}
+    tetrisPieceShape: 16
+    itemIcon: {fileID: 21300000, guid: 2e81e908995d8e04dbf4925ae7035ea3, type: 3}
+    gridUIPrefab: {fileID: 0}
+    inventorySlotType: 0
+    itemRarity: 0
+    itemDamage: 0
+    maxStack: 0
+    reloadTime: 0
+    yHeight: 2
     xWidth: 4
+    weight: 0
+    ergonomics: 0
+    dir: 0
+    itemPrice: 0
+    sellPercentage: 0
+  - itemID: 6
+    localizedName:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_6_Name
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_6_Desc
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    itemEntity: {fileID: 729587632071510457, guid: 906918215ec5228428c6af2d35d8e3a1, type: 3}
+    tetrisPieceShape: 16
+    itemIcon: {fileID: 21300000, guid: bed5adb953a86444390664a68687d417, type: 3}
+    gridUIPrefab: {fileID: 0}
+    inventorySlotType: 0
+    itemRarity: 0
+    itemDamage: 0
+    maxStack: 0
+    reloadTime: 0
+    yHeight: 2
+    xWidth: 4
+    weight: 0
+    ergonomics: 0
+    dir: 0
+    itemPrice: 0
+    sellPercentage: 0
+  - itemID: 7
+    localizedName:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_7_Name
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_7_Desc
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    itemEntity: {fileID: 8325389756038457416, guid: dbe195b09ed22a04c8fc9d9f0f82065b, type: 3}
+    tetrisPieceShape: 16
+    itemIcon: {fileID: 21300000, guid: 21e09aca5c2152e49a00904941622957, type: 3}
+    gridUIPrefab: {fileID: 0}
+    inventorySlotType: 0
+    itemRarity: 0
+    itemDamage: 0
+    maxStack: 0
+    reloadTime: 0
+    yHeight: 2
+    xWidth: 4
+    weight: 0
+    ergonomics: 0
+    dir: 0
+    itemPrice: 0
+    sellPercentage: 0
+  - itemID: 8
+    localizedName:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_8_Name
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_8_Desc
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    itemEntity: {fileID: 2688094641472248369, guid: 51c0146e03762ae4dbf6eb6cb2d80ca7, type: 3}
+    tetrisPieceShape: 19
+    itemIcon: {fileID: 21300000, guid: 97bbb3f60a2682949a5a90ae84021f69, type: 3}
+    gridUIPrefab: {fileID: 0}
+    inventorySlotType: 0
+    itemRarity: 0
+    itemDamage: 0
+    maxStack: 0
+    reloadTime: 0
+    yHeight: 4
+    xWidth: 3
     weight: 0
     ergonomics: 0
     dir: 0

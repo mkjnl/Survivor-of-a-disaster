@@ -61,20 +61,26 @@ public class PlayerInteraction : MonoBehaviour
 
         if (target != null)
         {
-            if (!target.isUsed)
+            if (target.CanInteract())
             {
+                Debug.Log($"[PlayerInteraction] 与 {target.objectName} 交互 (类型:{target.objectType}, 方式:{target.interactMethod})");
                 target.OnInteract();
-                InventoryManager.Instance.ToggleInventorySystem();
-                Debug.Log("打开UI");
+
+                // 只有容器类型才打开背包，拾取物不弹 UI
+                if (target.objectType == InteractiveObjectBase.InteractableType.Container)
+                {
+                    InventoryManager.Instance.ToggleInventorySystem();
+                    Debug.Log("[PlayerInteraction] 打开容器 UI");
+                }
             }
             else
             {
-                Debug.Log($"{target.objectName} 已经被使用过了");
+                Debug.Log($"[PlayerInteraction] {target.objectName} 无法交互");
             }
         }
         else
         {
-            Debug.Log("未能找到可交互物体");
+            Debug.Log("[PlayerInteraction] 附近无可交互物体");
         }
     }
 

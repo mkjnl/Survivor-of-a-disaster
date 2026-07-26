@@ -123,7 +123,7 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM
                 return _playerInput.currentControlScheme == "KeyboardMouse";
 #else
-				return false;
+                return false;
 #endif
             }
         }
@@ -144,11 +144,11 @@ namespace StarterAssets
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
-            
-#if ENABLE_INPUT_SYSTEM 
+
+#if ENABLE_INPUT_SYSTEM
             _playerInput = GetComponent<PlayerInput>();
 #else
-			Debug.LogError("Starter Assets 包缺少依赖，请使用 Tools/Starter Assets/Reinstall Dependencies 修复");
+            Debug.LogError("Starter Assets 包缺少依赖，请使用 Tools/Starter Assets/Reinstall Dependencies 修复");
 #endif
 
             AssignAnimationIDs();
@@ -162,13 +162,31 @@ namespace StarterAssets
         {
             _hasAnimator = TryGetComponent(out _animator);
 
-            JumpAndGravity();
+            // 物品栏打开时暂停所有角色逻辑
+            if (Cholopol.TIS.InventoryManager.Instance != null
+                && Cholopol.TIS.InventoryManager.Instance.IsInventoryOpen)
+                return;
+
+            var stateMachine = GetComponent<CharacterStateMachine>();
+
             GroundedCheck();
+            JumpAndGravity();
+
+            // 瞄准状态下只保留必要物理（地面检测 + 重力 + 跳跃）
+            if (stateMachine != null && stateMachine.IsAiming)
+            {
+                return;
+            }
             Move();
         }
 
         private void LateUpdate()
         {
+            // 物品栏打开时跳过相机旋转
+            if (Cholopol.TIS.InventoryManager.Instance != null
+                && Cholopol.TIS.InventoryManager.Instance.IsInventoryOpen)
+                return;
+
             CameraRotation();
         }
 
@@ -216,6 +234,8 @@ namespace StarterAssets
 
         private void Move()
         {
+            var stateMachine = GetComponent<CharacterStateMachine>();
+
             // 根据是否按下奔跑键设置目标速度
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -297,6 +317,7 @@ namespace StarterAssets
                     {
                         _animator.SetBool(_animIDJump, true);
                     }
+                    _input.jump = false;
                 }
 
                 if (_jumpTimeoutDelta >= 0.0f)

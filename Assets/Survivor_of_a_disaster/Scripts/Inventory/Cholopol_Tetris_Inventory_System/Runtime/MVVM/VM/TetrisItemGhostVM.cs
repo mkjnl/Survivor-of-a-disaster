@@ -258,25 +258,30 @@ namespace Cholopol.TIS.MVVM.ViewModels
                 }
                 foreach (Vector2Int v2i in TetrisCoordinateSet)
                 {
-                    PlaceState = targetGridVM.HasItem(
-                        OnGridPositionX + v2i.x + RotationOffset.x,
-                        OnGridPositionY + v2i.y + RotationOffset.y) ?
+                    int gx = OnGridPositionX + v2i.x + RotationOffset.x;
+                    int gy = OnGridPositionY + v2i.y + RotationOffset.y;
+
+                    // 边界检查：防止坐标超出网格范围导致 IndexOutOfRange
+                    if (!targetGridVM.PositionCheck(gx, gy))
+                    {
+                        PlaceState = PlaceState.InvalidPos;
+                        overlapItem = null;
+                        return;
+                    }
+
+                    PlaceState = targetGridVM.HasItem(gx, gy) ?
                     PlaceState.OnGridHasItem : PlaceState.OnGridNoItem;
                     if (PlaceState == PlaceState.OnGridHasItem)
                     {
                         if (overlapItem == null)
                         {
-                            overlapItem = targetGridVM.GetTetrisItemVM(
-                            OnGridPositionX + v2i.x + RotationOffset.x,
-                            OnGridPositionY + v2i.y + RotationOffset.y);
+                            overlapItem = targetGridVM.GetTetrisItemVM(gx, gy);
                             return;
                         }
                         else
                         {
                             //If find multiple overlapping items in the range
-                            if (overlapItem != targetGridVM.GetTetrisItemVM(
-                            OnGridPositionX + v2i.x + RotationOffset.x,
-                            OnGridPositionY + v2i.y + RotationOffset.y))
+                            if (overlapItem != targetGridVM.GetTetrisItemVM(gx, gy))
                             {
                                 overlapItem = null;
                                 return;

@@ -1,55 +1,66 @@
 using UnityEngine;
 
+/// <summary>
+/// 高亮器：始终运行射线检测 → 找到最近的 InteractiveObjectBase → 通知选中/取消。
+/// 不直接操作描边组件（Outlines），描边由 InteractiveObjectBase 自己管理。
+/// 瞄准和非瞄准状态下均生效。
+/// </summary>
 public class ObjectHighlighter : MonoBehaviour
 {
+    [Header("===== 检测设置 =====")]
+    [Tooltip("最大检测距离")]
     public float maxDistance = 5f;
+
+    [Tooltip("可交互物的层，设置为 Container")]
     public LayerMask targetLayer;
 
-    private GameObject selectedObj;
+    private InteractiveObjectBase _selectedTarget;
+    private Camera _mainCamera;
 
-    void Update()
+    // 用于 RaycastAll 结果排序，避免每帧分配
+    private static System.Comparison<RaycastHit> _distanceComparison = (a, b) => a.distance.CompareTo(b.distance);
+
+    private void Awake()
     {
-        Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
+        _mainCamera = Camera.main;
+    }
+
+    private void Update()
+    {
+        if (_mainCamera == null) return;
+
+        Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
         RaycastHit[] hits = Physics.RaycastAll(ray, maxDistance, targetLayer);
 
-        foreach (RaycastHit hit in hits)
+        // 按距离排序，确保选到最近的
+        System.Array.Sort(hits, _distanceComparison);
+
+        // 取第一个挂有 InteractiveObjectBase 的物体
+        InteractiveObjectBase nearest = null;
+        foreach (var hit in hits)
         {
-            Outlines outline = hit.collider.GetComponent<Outlines>();
-            if (outline != null)
-            {
-                if (hit.collider.gameObject != selectedObj)
-                {
-                    ClearOutline();
-                    selectedObj = hit.collider.gameObject;
-                    outline.enabled = true;
-
-                    InteractiveObjectBase interactable = hit.collider.GetComponent<InteractiveObjectBase>();
-                    if (interactable != null)
-                    {
-                        interactable.OnSelected();
-                    }
-
-
-                }
-                return;
-            }
+            nearest = hit.collider.GetComponent<InteractiveObjectBase>();
+            if (nearest != null) break;
         }
 
-        // 所有物体都没挂 Outlines，清空选中
-        ClearOutline();
-        selectedObj = null;
+        // 只在选中目标变化时才通知
+        if (nearest != _selectedTarget)
+        {
+            if (_selectedTarget != null)
+                _selectedTarget.OnDeselected();
 
+            _selectedTarget = nearest;
+
+            if (_selectedTarget != null)
+                _selectedTarget.OnSelected();
+        }
     }
-    void ClearOutline()
+
+    /// <summary>
+    /// 获取当前瞄准的可交互物体
+    /// </summary>
+    public GameObject GetSelectedObject()
     {
-        if (selectedObj != null)
-        {
-            selectedObj.GetComponent<Outlines>().enabled = false;
-            InteractiveObjectBase interactable = selectedObj.GetComponent<InteractiveObjectBase>();
-            if (interactable != null)
-            {
-                interactable.OnDeselected();
-            }
-        }
+        return _selectedTarget != null ? _selectedTarget.gameObject : null;
     }
 }

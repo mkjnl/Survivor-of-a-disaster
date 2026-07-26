@@ -1,0 +1,56 @@
+using UnityEngine;
+
+/// <summary>
+/// 武器拾取物：p320、AWP、AK47、MK14、AUG 等枪械的通用交互脚本。
+/// 拾取时将物品添加到玩家 CTIS 库存。背包满时物品留在地上。
+/// </summary>
+public class WeaponPickup : InteractiveObjectBase
+{
+    public override void OnInteract()
+    {
+        UnityEngine.Debug.Log($"[WeaponPickup] 开始拾取: {objectName} (pickUpItemID={pickUpItemID})");
+
+        if (pickUpItemID >= 0)
+        {
+            var im = Cholopol.TIS.InventoryManager.Instance;
+            if (im == null)
+            {
+                UnityEngine.Debug.LogError($"[WeaponPickup] InventoryManager.Instance 为 null！");
+                ForcePickup("InventoryManager 不可用");
+                return;
+            }
+
+            if (im.AddItemToPlayerBag(pickUpItemID))
+            {
+                isUsed = true;
+                UnityEngine.Debug.Log($"[WeaponPickup] ✓ 拾取成功: {objectName}");
+            }
+            else
+            {
+                // 背包满 → 物品留在地上，不标记 isUsed，不触发冷却
+            }
+            return;
+        }
+
+        // pickUpItemID 仍为 -1，说明 SupplyPoint 没有注入 itemID。
+        UnityEngine.Debug.LogError($"[WeaponPickup] pickUpItemID=-1 (name={objectName})，SupplyPoint 未注入！强制清除");
+        ForcePickup("pickUpItemID 缺失");
+    }
+
+    /// <summary>强制拾取：标记已用，让 SupplyPoint 清除模型。</summary>
+    private void ForcePickup(string reason)
+    {
+        UnityEngine.Debug.LogWarning($"[WeaponPickup] 强制拾取: {objectName}，原因: {reason}");
+        isUsed = true;
+    }
+
+    public override void OnSelected()
+    {
+        base.OnSelected();
+    }
+
+    public override void OnDeselected()
+    {
+        base.OnDeselected();
+    }
+}

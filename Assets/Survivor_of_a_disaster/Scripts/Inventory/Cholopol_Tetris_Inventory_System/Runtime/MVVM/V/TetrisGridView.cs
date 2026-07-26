@@ -32,6 +32,16 @@ namespace Cholopol.TIS.MVVM.Views
         [SerializeField] private UnityEvent<TetrisGridView> OnPointerExitEvent = new UnityEvent<TetrisGridView>();
 
         private TetrisGridVM _viewModel;
+
+        /// <summary>
+        /// 在绑定 ViewModel 之前设置网格尺寸。调用此方法后，Bind() 将使用这些值而不是序列化的默认值。
+        /// 这样可以支持不同容器使用不同尺寸的网格（例如 OldSate 3×3，仓库 10×10）。
+        /// </summary>
+        public void SetGridDimensions(int width, int height)
+        {
+            _gridSizeWidth = width > 0 ? width : 1;
+            _gridSizeHeight = height > 0 ? height : 1;
+        }
         public override TetrisGridVM ViewModel
         {
             get { return _viewModel; }
@@ -70,6 +80,19 @@ namespace Cholopol.TIS.MVVM.Views
             }
 
             viewModel.ApplyConfig(gw, gh, unitW, unitH);
+
+            // 无精灵时动态生成带网格线纹理，使空容器网格清晰可见
+            if (img != null && img.sprite == null)
+            {
+                var gridSprite = GenerateGridSprite(gw, gh, unitW, unitH);
+                if (gridSprite != null)
+                {
+                    img.sprite = gridSprite;
+                    img.type = Image.Type.Simple;
+                    img.color = Color.white; // 重置颜色，让精灵正常渲染
+                }
+            }
+
             var bindingSet = this.CreateBindingSet(viewModel);
             bindingSet.Bind(RectTransform).For(v => v.sizeDelta).To(vm => vm.Size).OneWay();
             bindingSet.Build();
@@ -201,6 +224,54 @@ namespace Cholopol.TIS.MVVM.Views
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 运行时生成带网格线的精灵纹理。当 Inspector 中未设置背景精灵时，
+        /// 此方法根据实际网格尺寸生成可视化网格，使空容器也能看清布局。
+        /// </summary>
+        private Sprite GenerateGridSprite(int gridWidth, int gridHeight, float cellWidth, float cellHeight)
+        {
+            int texW = Mathf.RoundToInt(gridWidth * cellWidth);
+            int texH = Mathf.RoundToInt(gridHeight * cellHeight);
+            if (texW <= 0) texW = 1;
+            if (texH <= 0) texH = 1;
+
+            var tex = new Texture2D(texW, texH, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Point;
+            tex.wrapMode = TextureWrapMode.Clamp;
+
+            Color bgColor = new Color(0.1f, 0.1f, 0.1f, 0.65f);
+            Color lineColor = new Color(0.3f, 0.3f, 0.3f, 0.85f);
+
+            // 填充背景色
+            var pixels = new Color32[texW * texH];
+            var bg32 = (Color32)bgColor;
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = bg32;
+            tex.SetPixels32(pixels);
+
+            // 画竖线（列边框）
+            var lc32 = (Color32)lineColor;
+            for (int col = 0; col <= gridWidth; col++)
+            {
+                int px = Mathf.RoundToInt(col * cellWidth);
+                if (px >= texW) px = texW - 1;
+                for (int y = 0; y < texH; y++)
+                    tex.SetPixel(px, y, lc32);
+            }
+
+            // 画横线（行边框）
+            for (int row = 0; row <= gridHeight; row++)
+            {
+                int py = Mathf.RoundToInt(row * cellHeight);
+                if (py >= texH) py = texH - 1;
+                for (int x = 0; x < texW; x++)
+                    tex.SetPixel(x, py, lc32);
+            }
+
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, texW, texH), new Vector2(0.5f, 0.5f));
         }
 
         protected override void OnDestroy()

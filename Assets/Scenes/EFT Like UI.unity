@@ -3314,6 +3314,8 @@ MonoBehaviour:
   placementConfig: {fileID: 11400000, guid: 978abb8848b906740a9837ae7b4a1857, type: 2}
   inventorySystemRoot: {fileID: 2070003786}
   startPanel: {fileID: 1544208258}
+  starterAssetsInputs: {fileID: 0}
+  containerPanel: {fileID: 0}
   selectedItemView: {fileID: 0}
   tileGridOriginPosition: {x: 0, y: 0}
 --- !u!114 &359078940

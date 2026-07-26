@@ -26,6 +26,11 @@ namespace StarterAssets
 
 		// 是否冲刺
 		public bool sprint;
+		// 是否进入瞄准状态
+		public bool aim;
+
+		// 鼠标左键
+		public bool leftclick;
 
 		[Header("Movement Settings")]
 
@@ -71,6 +76,7 @@ namespace StarterAssets
 		public void OnJump(InputValue value)
 		{
 			JumpInput(value.isPressed);
+
 		}
 
 		/// <summary>
@@ -81,6 +87,20 @@ namespace StarterAssets
 		{
 			SprintInput(value.isPressed);
 		}
+
+		/// <summary>
+		/// 接收瞄准输入
+		/// </summary>
+		/// <param name="value">输入值</param>
+		public void OnAim(InputValue value)
+		{
+			AimInput(value.isPressed);
+		}
+
+		public void OnLeftClick(InputValue value){
+			LeftClickInput(value.isPressed);
+		}
+
 #endif
 
 		/// <summary>
@@ -108,6 +128,7 @@ namespace StarterAssets
 		public void JumpInput(bool newJumpState)
 		{
 			jump = newJumpState;
+
 		}
 
 		/// <summary>
@@ -117,6 +138,22 @@ namespace StarterAssets
 		public void SprintInput(bool newSprintState)
 		{
 			sprint = newSprintState;
+		}
+		/// <summary>
+		/// 设置鼠标右键状态
+		/// </summary>
+		/// <param name="newAimState"></param>
+		public void AimInput(bool newAimState)
+		{
+			aim = newAimState;
+		}
+		/// <summary>
+		/// 设置鼠标左键状态
+		/// </summary>
+		/// <param name="newLeftClickState"></param>
+		public void LeftClickInput(bool newLeftClickState)
+		{
+			leftclick = newLeftClickState;
 		}
 
 		/// <summary>
