@@ -53,6 +53,7 @@ namespace StarterAssets
 		/// <param name="value">输入值</param>
 		public void OnMove(InputValue value)
 		{
+			if (!enabled) return;
 			MoveInput(value.Get<Vector2>());
 		}
 
@@ -62,6 +63,7 @@ namespace StarterAssets
 		/// <param name="value">输入值</param>
 		public void OnLook(InputValue value)
 		{
+			if (!enabled) return;
 			// 只有允许鼠标输入时才更新视角
 			if(cursorInputForLook)
 			{
@@ -75,6 +77,7 @@ namespace StarterAssets
 		/// <param name="value">输入值</param>
 		public void OnJump(InputValue value)
 		{
+			if (!enabled) return;
 			JumpInput(value.isPressed);
 
 		}
@@ -85,6 +88,7 @@ namespace StarterAssets
 		/// <param name="value">输入值</param>
 		public void OnSprint(InputValue value)
 		{
+			if (!enabled) return;
 			SprintInput(value.isPressed);
 		}
 
@@ -94,10 +98,12 @@ namespace StarterAssets
 		/// <param name="value">输入值</param>
 		public void OnAim(InputValue value)
 		{
+			if (!enabled) return;
 			AimInput(value.isPressed);
 		}
 
 		public void OnLeftClick(InputValue value){
+			if (!enabled) return;
 			LeftClickInput(value.isPressed);
 		}
 

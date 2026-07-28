@@ -29,7 +29,7 @@ namespace Cholopol.TIS
     public class RightClickMenuPanel : UIView
     {
         [SerializeField] private ItemInformationPanel ItemInformationPanel;
-        [SerializeField] private Button CheckBtn, SplitBtn, UseBtn, OpenBtn;
+        [SerializeField] private Button CheckBtn, SplitBtn, UseBtn, OpenBtn, DiscardBtn;
         [SerializeField] private float distanceThreshold = 150f;
 
         private Canvas _canvas;
@@ -73,6 +73,9 @@ namespace Cholopol.TIS
             bindingSet.Bind(SplitBtn).For(v => v.onClick).To(m => m.SplitCommand);
             bindingSet.Bind(UseBtn).For(v => v.onClick).To(m => m.UseCommand);
             bindingSet.Bind(OpenBtn).For(v => v.onClick).To(m => m.OpenCommand);
+            if (DiscardBtn != null)
+                bindingSet.Bind(DiscardBtn).For(v => v.onClick).To(m => m.DiscardCommand);
+            bindingSet.Bind().For(v => v.OnDiscard).To(m => m.DiscardRequest);
             bindingSet.Bind().For(v => v.OnShowInfo).To(m => m.ShowInfoRequest);
             bindingSet.Bind().For(v => v.OnOpenPanel).To(m => m.OpenPanelRequest);
             bindingSet.Bind().For(v => v.OnClose).To(m => m.CloseRequest);
@@ -98,6 +101,13 @@ namespace Cholopol.TIS
             Show(false);
         }
 
+        public void OnDiscard(object sender, InteractionEventArgs args)
+        {
+            var vm = args.Context as TetrisItemVM;
+            if (vm == null) return;
+            InventoryManager.Instance.DiscardItem(vm);
+        }
+
         public void Show(bool isClick)
         {
             gameObject.SetActive(isClick);
@@ -121,6 +131,7 @@ namespace Cholopol.TIS
                 CheckBtn.gameObject.SetActive(false);
                 SplitBtn.gameObject.SetActive(false);
                 OpenBtn.gameObject.SetActive(false);
+                if (DiscardBtn != null) DiscardBtn.gameObject.SetActive(false);
                 return;
             }
             bool hasFloating = item.ItemDetails != null && item.ItemDetails.gridUIPrefab != null;
@@ -128,6 +139,7 @@ namespace Cholopol.TIS
             CheckBtn.gameObject.SetActive(true);
             SplitBtn.gameObject.SetActive(item.IsStackable);
             OpenBtn.gameObject.SetActive(hasFloating && !isOpen);
+            if (DiscardBtn != null) DiscardBtn.gameObject.SetActive(true);
         }
     }
 }

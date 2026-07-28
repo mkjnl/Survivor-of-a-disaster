@@ -82,13 +82,17 @@ namespace Cholopol.TIS
                 tile.transform.SetParent(highlighter);
                 tile.transform.localScale = Vector3.one;
                 tile.transform.localPosition = tilePos;
-                
+
                 var tileRect = tile.GetComponent<RectTransform>();
                 if (tileRect != null)
                 {
                     tileRect.sizeDelta = new Vector2(tileW, tileH);
                 }
-                
+
+                // 确保从池取出时 Image 组件处于启用状态
+                var tileImg = tile.GetComponent<Image>();
+                if (tileImg != null) tileImg.enabled = true;
+
                 activeTiles.Add(tile);
             }
         }

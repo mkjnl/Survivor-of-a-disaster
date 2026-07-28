@@ -98,7 +98,7 @@ public class TetrisItemGhostView : UIView, IBeginDragHandler, IEndDragHandler, I
         contentRect.anchoredPosition = Vector2.zero;
 
         contentImage.raycastTarget = true;
-        contentImage.preserveAspect = false;
+        contentImage.preserveAspect = true;
         if (contentImage.GetComponent<SpriteMeshRaycastFilter>() == null)
             contentImage.gameObject.AddComponent<SpriteMeshRaycastFilter>();
         
@@ -245,7 +245,7 @@ public class TetrisItemGhostView : UIView, IBeginDragHandler, IEndDragHandler, I
         var container = ViewModel.TargetContaineOnDrop;
         if (container == null) container = ViewModel.SelectedItem != null ? ViewModel.SelectedItem.CurrentTetrisContainer : null;
         if (container == null) container = ViewModel.OriginContainerOnDrag;
-        _ghostImage.preserveAspect = container is TetrisSlotVM;
+        _ghostImage.preserveAspect = true;
     }
 
     private void CheckAndResyncToTopmostItem()

@@ -37,7 +37,7 @@ MonoBehaviour:
     itemIcon: {fileID: 21300000, guid: a7ba1e1534c185a4992294fc973a170c, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 8
-    itemRarity: 0
+    itemRarity: 1
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
@@ -68,16 +68,16 @@ MonoBehaviour:
       m_WaitForCompletion: 0
       m_LocalVariables: []
     itemEntity: {fileID: 5135094773649816796, guid: 508312a52a2b63a42bf29f9c78235fb9, type: 3}
-    tetrisPieceShape: 16
+    tetrisPieceShape: 21
     itemIcon: {fileID: 21300000, guid: 9ebdb8c1f6b8ab8478ccb3a39acbdee7, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 7
-    itemRarity: 2
+    itemRarity: 4
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
     yHeight: 2
-    xWidth: 9
+    xWidth: 6
     weight: 0
     ergonomics: 0
     dir: 0
@@ -107,7 +107,7 @@ MonoBehaviour:
     itemIcon: {fileID: 21300000, guid: c0cf65cebe4595d48930ba084a60c92f, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 0
-    itemRarity: 0
+    itemRarity: 3
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
@@ -142,7 +142,7 @@ MonoBehaviour:
     itemIcon: {fileID: 21300000, guid: eab798bcb68c7ae46b429385edb306e3, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 0
-    itemRarity: 0
+    itemRarity: 3
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
@@ -173,16 +173,16 @@ MonoBehaviour:
       m_WaitForCompletion: 0
       m_LocalVariables: []
     itemEntity: {fileID: 2584884109742696891, guid: 83d2bf6f908b8c74ea72142c383d9203, type: 3}
-    tetrisPieceShape: 16
+    tetrisPieceShape: 20
     itemIcon: {fileID: 21300000, guid: 2e81e908995d8e04dbf4925ae7035ea3, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 0
-    itemRarity: 0
+    itemRarity: 1
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
     yHeight: 2
-    xWidth: 4
+    xWidth: 5
     weight: 0
     ergonomics: 0
     dir: 0
@@ -208,16 +208,16 @@ MonoBehaviour:
       m_WaitForCompletion: 0
       m_LocalVariables: []
     itemEntity: {fileID: 729587632071510457, guid: 906918215ec5228428c6af2d35d8e3a1, type: 3}
-    tetrisPieceShape: 16
+    tetrisPieceShape: 20
     itemIcon: {fileID: 21300000, guid: bed5adb953a86444390664a68687d417, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 0
-    itemRarity: 0
+    itemRarity: 2
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
     yHeight: 2
-    xWidth: 4
+    xWidth: 5
     weight: 0
     ergonomics: 0
     dir: 0
@@ -243,16 +243,16 @@ MonoBehaviour:
       m_WaitForCompletion: 0
       m_LocalVariables: []
     itemEntity: {fileID: 8325389756038457416, guid: dbe195b09ed22a04c8fc9d9f0f82065b, type: 3}
-    tetrisPieceShape: 16
+    tetrisPieceShape: 20
     itemIcon: {fileID: 21300000, guid: 21e09aca5c2152e49a00904941622957, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 0
-    itemRarity: 0
+    itemRarity: 1
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
     yHeight: 2
-    xWidth: 4
+    xWidth: 5
     weight: 0
     ergonomics: 0
     dir: 0
@@ -278,15 +278,50 @@ MonoBehaviour:
       m_WaitForCompletion: 0
       m_LocalVariables: []
     itemEntity: {fileID: 2688094641472248369, guid: 51c0146e03762ae4dbf6eb6cb2d80ca7, type: 3}
-    tetrisPieceShape: 19
+    tetrisPieceShape: 22
     itemIcon: {fileID: 21300000, guid: 97bbb3f60a2682949a5a90ae84021f69, type: 3}
     gridUIPrefab: {fileID: 0}
     inventorySlotType: 0
-    itemRarity: 0
+    itemRarity: 5
     itemDamage: 0
     maxStack: 0
     reloadTime: 0
-    yHeight: 4
+    yHeight: 3
+    xWidth: 3
+    weight: 0
+    ergonomics: 0
+    dir: 0
+    itemPrice: 0
+    sellPercentage: 0
+  - itemID: 9
+    localizedName:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_9_Name
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    localizedDescription:
+      m_TableReference:
+        m_TableCollectionName: ItemStrings
+      m_TableEntryReference:
+        m_KeyId: 0
+        m_Key: Item_9_Desc
+      m_FallbackState: 0
+      m_WaitForCompletion: 0
+      m_LocalVariables: []
+    itemEntity: {fileID: 1108005524652389305, guid: 6a2456842ad30c6498abb614aa6cb31f, type: 3}
+    tetrisPieceShape: 22
+    itemIcon: {fileID: 21300000, guid: 74dd338f85bc35f4ab0db3eece267d1d, type: 3}
+    gridUIPrefab: {fileID: 8199173421864791972, guid: ee18b2582fd7c894fa20984be840a660, type: 3}
+    inventorySlotType: 4
+    itemRarity: 4
+    itemDamage: 0
+    maxStack: 0
+    reloadTime: 0
+    yHeight: 3
     xWidth: 3
     weight: 0
     ergonomics: 0

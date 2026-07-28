@@ -35,6 +35,7 @@ namespace Cholopol.TIS.MVVM.Views
         private RectTransform rarityBackgroundRoot;
         private readonly List<Image> rarityBackgroundTiles = new List<Image>();
         private static GameObject s_rarityTilePrefab;
+        private bool _rarityTilesDirty;
         public Transform EquipmentTypeGridsPanel { get; private set; }
         public List<TetrisGridView> OwnedTetrisGrids { get; private set; } = new List<TetrisGridView>();
         private Transform _initialGridPanelParent;
@@ -117,7 +118,7 @@ namespace Cholopol.TIS.MVVM.Views
             contentRect.pivot = new Vector2(0.5f, 0.5f);
 
             contentImage.raycastTarget = true;
-            contentImage.preserveAspect = false;
+            contentImage.preserveAspect = true;
             itemImage = contentImage;
 
             if (itemImage != null)
@@ -141,8 +142,8 @@ namespace Cholopol.TIS.MVVM.Views
                 bgRect.anchorMin = Vector2.zero;
                 bgRect.anchorMax = Vector2.one;
                 bgRect.sizeDelta = Vector2.zero;
-                bgRect.offsetMin = new Vector2(0.5f, 0.5f);
-                bgRect.offsetMax = new Vector2(-0.5f, -0.5f);
+                bgRect.offsetMin = Vector2.zero;
+                bgRect.offsetMax = Vector2.zero;
 
                 rarityBackgroundRoot = bgRect;
             }
@@ -253,6 +254,7 @@ namespace Cholopol.TIS.MVVM.Views
                 bindingSet.Bind(itemNameText).For(v => v.text).To(vm => vm.ItemName).OneWay();
             }
             bindingSet.Build();
+            Canvas.ForceUpdateCanvases();
             RefreshRarityBackgroundTiles();
             if (stackNumText != null)
             {
@@ -287,6 +289,20 @@ namespace Cholopol.TIS.MVVM.Views
             TetrisItemMediator.Instance.TrySyncGhostFromItem(_viewModel, initData);
         }
 
+        /// <summary>
+        /// 帧末统一刷新稀有度背景色块。
+        /// 强制 Canvas 布局重建后再刷新，确保 RarityBackgroundRoot 的 rect 已更新。
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_rarityTilesDirty && _viewModel != null)
+            {
+                _rarityTilesDirty = false;
+                Canvas.ForceUpdateCanvases();
+                RefreshRarityBackgroundTiles();
+            }
+        }
+
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(TetrisItemVM.CurrentStack))
@@ -312,7 +328,9 @@ namespace Cholopol.TIS.MVVM.Views
                     float scale = _viewModel.TextScaleFactor;
                     ApplyTextStyle(stackNumText, _viewModel.StackNumTextStyle, true, scale);
                     ApplyTextStyle(itemNameText, _viewModel.ItemNameTextStyle, true, scale);
-                    RefreshRarityBackgroundTiles();
+                    // 不直接刷新 — 标记脏，到 LateUpdate 统一刷新。
+                    // 旋转/移动等操作会触发一连串属性变更，中间的中间态数据会导致色块错位/缺失。
+                    _rarityTilesDirty = true;
                 }
             }
         }
@@ -338,8 +356,8 @@ namespace Cholopol.TIS.MVVM.Views
             rarityBackgroundRoot.anchorMax = Vector2.one;
             rarityBackgroundRoot.sizeDelta = Vector2.zero;
             rarityBackgroundRoot.pivot = new Vector2(0f, 1f);
-            rarityBackgroundRoot.offsetMin = new Vector2(0.5f, 0.5f);
-            rarityBackgroundRoot.offsetMax = new Vector2(-0.5f, -0.5f);
+            rarityBackgroundRoot.offsetMin = Vector2.zero;
+            rarityBackgroundRoot.offsetMax = Vector2.zero;
         }
 
         private void RefreshRarityBackgroundTiles()
@@ -349,8 +367,8 @@ namespace Cholopol.TIS.MVVM.Views
             if (vm == null) return;
             if (vm.ItemDetails == null) return;
 
-            float w = RectTransform != null ? RectTransform.sizeDelta.x : vm.Size.x;
-            float h = RectTransform != null ? RectTransform.sizeDelta.y : vm.Size.y;
+            float w = vm.Size.x;
+            float h = vm.Size.y;
             if (w <= 0f || h <= 0f) return;
 
             bool inSlot = vm.CurrentTetrisContainer is TetrisSlotVM;
@@ -363,11 +381,21 @@ namespace Cholopol.TIS.MVVM.Views
             }
 
             List<Vector2Int> points = null;
+            bool useRectFallback = false;
             if (!inSlot)
             {
                 points = vm.TetrisCoordinateSet;
+                if (points == null || points.Count == 0)
+                {
+                    // 形状数据缺失 → 退回到矩形填充（xWidth × yHeight）
+                    points = new List<Vector2Int>(gridW * gridH);
+                    for (int py = 0; py < gridH; py++)
+                        for (int px = 0; px < gridW; px++)
+                            points.Add(new Vector2Int(px, py));
+                    useRectFallback = true;
+                }
             }
-            int required = inSlot ? (gridW * gridH) : (points != null ? points.Count : 0);
+            int required = inSlot ? (gridW * gridH) : points.Count;
             if (required <= 0)
             {
                 ReleaseAllRarityBackgroundTiles();
@@ -392,11 +420,9 @@ namespace Cholopol.TIS.MVVM.Views
                     {
                         var tile = rarityBackgroundTiles[idx++];
                         if (tile == null) continue;
-                        float x = (xCell + offset.x) * tileW;
-                        float yDown = (y + offset.y) * tileH;
-                        float centerX = x + (tileW * 0.5f) - (w * 0.5f);
-                        float centerY = (h * 0.5f) - (yDown + (tileH * 0.5f));
-                        ConfigureRarityTile(tile, tileW, tileH, new Vector2(centerX, centerY), color);
+                        float posX = (xCell + offset.x) * tileW;
+                        float posY = h - (y + offset.y) * tileH - tileH;
+                        ConfigureRarityTile(tile, tileW, tileH, new Vector2(posX, posY), color);
                     }
                 }
             }
@@ -408,22 +434,23 @@ namespace Cholopol.TIS.MVVM.Views
                     if (tile == null) continue;
 
                     var p = points[i];
-                    float x = (p.x + offset.x) * tileW;
-                    float yDown = (p.y + offset.y) * tileH;
-                    float centerX = x + (tileW * 0.5f) - (w * 0.5f);
-                    float centerY = (h * 0.5f) - (yDown + (tileH * 0.5f));
-                    ConfigureRarityTile(tile, tileW, tileH, new Vector2(centerX, centerY), color);
+                    float posX = (p.x + offset.x) * tileW;
+                    float posY = h - (p.y + offset.y) * tileH - tileH;
+                    ConfigureRarityTile(tile, tileW, tileH, new Vector2(posX, posY), color);
                 }
             }
+
         }
 
         private static void ConfigureRarityTile(Image tile, float tileW, float tileH, Vector2 anchoredPos, Color color)
         {
             tile.color = color;
             var rt = tile.rectTransform;
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
+            // 左下角锚定 + 左下 pivot — 绝对坐标定位，不依赖父节点 rect 中心
+            // 避免 Canvas 布局未重建时居中参考系错误导致错位/裁切
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.zero;
+            rt.pivot = Vector2.zero;
             rt.sizeDelta = new Vector2(tileW, tileH);
             rt.anchoredPosition = anchoredPos;
         }
@@ -462,6 +489,7 @@ namespace Cholopol.TIS.MVVM.Views
             var img = go.GetComponent<Image>();
             if (img == null) img = go.AddComponent<Image>();
             img.raycastTarget = false;
+            img.enabled = true; // 确保从池取出时 Image 组件处于启用状态
             return img;
         }
 

@@ -20,9 +20,15 @@ public class WeaponPickup : InteractiveObjectBase
                 return;
             }
 
-            if (im.AddItemToPlayerBag(pickUpItemID))
+            // 丢弃物携带实例数据 → 还原 Guid/堆叠等；否则创建全新实例
+            bool success = discardData != null
+                ? im.AddItemToPlayerBag(pickUpItemID, discardData)
+                : im.AddItemToPlayerBag(pickUpItemID);
+
+            if (success)
             {
                 isUsed = true;
+                Destroy(gameObject);
                 UnityEngine.Debug.Log($"[WeaponPickup] ✓ 拾取成功: {objectName}");
             }
             else

@@ -22,6 +22,7 @@ using Cholopol.TIS.MVVM;
 using Cholopol.TIS.MVVM.ViewModels;
 using Cholopol.TIS.MVVM.Views;
 using Cholopol.TIS.Events;
+using Cholopol.TIS.SaveLoadSystem;
 using Loxodon.Framework.Contexts;
 using StarterAssets;
 
@@ -69,7 +70,8 @@ namespace Cholopol.TIS
         /// </summary>
         public ContainerBase ActiveWorldContainer { get; set; }
         private bool _containerGridBound;
-        private List<int> _pendingItems = new List<int>(); // 等待放入背包的物品
+        private struct PendingItem { public int itemID; public TetrisItemPersistentData data; }
+        private List<PendingItem> _pendingItems = new();
 
         public InventoryPlacementConfig_SO PlacementConfig => placementConfig;
         [Header("Focused TetrisItem Object")]
@@ -91,6 +93,16 @@ namespace Cholopol.TIS
                 RotateItemGhost();
             }
 
+            // Ctrl 键 丢弃鼠标悬停的物品
+            if (Keyboard.current.leftCtrlKey.wasPressedThisFrame && IsInventoryOpen)
+            {
+                var itemUnderMouse = GetTetrisItemViewUnderMouse();
+                if (itemUnderMouse != null && itemUnderMouse.ViewModel != null)
+                {
+                    DiscardItem(itemUnderMouse.ViewModel);
+                }
+            }
+
             var underMouse = GetGridViewUnderMouse();
             if (underMouse != selectedTetrisItemGridView)
             {
@@ -107,11 +119,26 @@ namespace Cholopol.TIS
 
             bool willOpen = !inventorySystemRoot.activeSelf;
 
-            // 控制玩家视角
+            // 打开背包 → 彻底禁用角色输入组件，防止任何按键泄露到游戏操作
+            // 关闭背包 → 恢复输入组件
             if (starterAssetsInputs != null)
             {
-                // 打开背包时禁用鼠标视角
-                starterAssetsInputs.cursorInputForLook = !willOpen;
+                if (willOpen)
+                {
+                    // 先清零所有输入状态，防止残留值在组件禁用期间被读取
+                    starterAssetsInputs.move = Vector2.zero;
+                    starterAssetsInputs.jump = false;
+                    starterAssetsInputs.sprint = false;
+                    starterAssetsInputs.aim = false;
+                    starterAssetsInputs.leftclick = false;
+                    starterAssetsInputs.cursorInputForLook = false;
+                    starterAssetsInputs.enabled = false;
+                }
+                else
+                {
+                    starterAssetsInputs.cursorInputForLook = true;
+                    starterAssetsInputs.enabled = true;
+                }
             }
 
             // 打开背包 → 显示鼠标
@@ -165,8 +192,139 @@ namespace Cholopol.TIS
         /// </summary>
         public List<Vector2Int> GetTetrisCoordinateSet(TetrisPieceShape shape)
         {
-            return tetrisItemPointSet_SO.TetrisPieceShapeList[(int)shape].points;
+            int index = (int)shape;
+            if (tetrisItemPointSet_SO == null || tetrisItemPointSet_SO.TetrisPieceShapeList == null)
+            {
+                UnityEngine.Debug.LogError($"[InventoryManager] TetrisItemPointSet_SO 未配置！");
+                return new List<Vector2Int>();
+            }
+            if (index < 0 || index >= tetrisItemPointSet_SO.TetrisPieceShapeList.Count)
+            {
+                var list = tetrisItemPointSet_SO.TetrisPieceShapeList;
+                var existing = new System.Text.StringBuilder();
+                var missing = new System.Text.StringBuilder();
+                int total = System.Enum.GetValues(typeof(TetrisPieceShape)).Length;
+                int have = 0, lack = 0;
+
+                for (int i = 0; i < total; i++)
+                {
+                    var s = (TetrisPieceShape)i;
+                    bool ok = i < list.Count && list[i] != null && list[i].points != null && list[i].points.Count > 0;
+                    if (ok)
+                    {
+                        existing.Append($"  [{i}] {s} ({list[i]!.points!.Count} pts)\n");
+                        have++;
+                    }
+                    else
+                    {
+                        missing.Append($"  [{i}] {s}\n");
+                        lack++;
+                    }
+                }
+
+                UnityEngine.Debug.LogError(
+                    $"[InventoryManager] 形状 {shape} (index={index}) 不存在！\n" +
+                    $"列表容量: {list.Count}/{total}，已定义: {have}，缺失: {lack}\n\n" +
+                    $"=== 已定义 ===\n{existing}\n" +
+                    $"=== 缺失 ===\n{missing}\n" +
+                    $"→ 右键 InventoryManager → Debug: Fill Missing Shapes 一键补全");
+                return new List<Vector2Int>();
+            }
+            var pts = tetrisItemPointSet_SO.TetrisPieceShapeList[index]?.points;
+            return pts ?? new List<Vector2Int>();
         }
+
+        /// <summary>
+        /// [ContextMenu] 一键填充/覆盖全部 23 个形状到 TetrisItemPointSet_SO。
+        /// 实用化定义：手枪(1-4格)、工艺品(3-5格异形)、步枪(6-12格矩形)。
+        /// 已有定义也会被覆盖，完成后自动保存。
+        /// </summary>
+        [ContextMenu("Debug: Fill All Shapes (实用化覆盖)")]
+        public void FillMissingShapes()
+        {
+            if (tetrisItemPointSet_SO == null)
+            {
+                UnityEngine.Debug.LogError("[InventoryManager] tetrisItemPointSet_SO 未配置！");
+                return;
+            }
+
+            var list = tetrisItemPointSet_SO.TetrisPieceShapeList;
+            if (list == null)
+            {
+                list = new List<PointSet>();
+                tetrisItemPointSet_SO.TetrisPieceShapeList = list;
+            }
+
+            int total = System.Enum.GetValues(typeof(TetrisPieceShape)).Length;
+            int created = 0, overwritten = 0;
+
+            for (int i = 0; i < total; i++)
+            {
+                var shape = (TetrisPieceShape)i;
+                while (list.Count <= i) list.Add(null);
+
+                bool existed = list[i] != null && list[i].points != null && list[i].points.Count > 0;
+                if (existed) overwritten++; else created++;
+
+                list[i] = new PointSet { tetrisPieceShape = shape, points = GetDefaultPoints(shape) };
+            }
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(tetrisItemPointSet_SO);
+            UnityEditor.AssetDatabase.SaveAssets();
+#endif
+            UnityEngine.Debug.Log(
+                $"[InventoryManager] 形状已实用化: 共 {total} 个（新增 {created}，覆盖 {overwritten}），已保存。\n" +
+                $"  手枪: Frame~Tetromino_O | 工艺品: Tetromino_T~Pentomino_P | 步枪: Cells9_Square~S_Rifle");
+        }
+
+        /// <summary>获取实用化形状坐标点（步枪/手枪/工艺品，最大 12 格）。</summary>
+        private static List<Vector2Int> GetDefaultPoints(TetrisPieceShape shape)
+        {
+            return shape switch
+            {
+                // === 手枪/小件 (1-4格) ===
+                TetrisPieceShape.Frame     => Rect(1, 1),       // 1格  戒指/钥匙
+                TetrisPieceShape.Domino    => Rect(1, 2),       // 2格  弹匣
+                TetrisPieceShape.Tromino_I => Rect(1, 3),       // 3格  长弹匣/手电
+                TetrisPieceShape.Tromino_L => L(2, false),      // 3格  附件L
+                TetrisPieceShape.Tromino_J => L(2, true),       // 3格  附件反L
+                TetrisPieceShape.Tetromino_I => Rect(1, 4),     // 4格  消音器/长剑
+                TetrisPieceShape.Tetromino_O => Rect(2, 2),     // 4格  手枪
+
+                // === 工艺品 (3-5格，异形) ===
+                TetrisPieceShape.Tetromino_T => T(),            // 4格  T形
+                TetrisPieceShape.Tetromino_J => L(3, false),    // 4格  L形
+                TetrisPieceShape.Tetromino_L => L(3, true),     // 4格  反L形
+                TetrisPieceShape.Tetromino_S => ZigZag(false),  // 4格  S锯齿
+                TetrisPieceShape.Tetromino_Z => ZigZag(true),   // 4格  Z锯齿
+                TetrisPieceShape.Pentomino_I => Rect(1, 5),     // 5格  卷轴
+                TetrisPieceShape.Pentomino_L => L3(false),      // 5格  L长
+                TetrisPieceShape.Pentomino_J => L3(true),       // 5格  反L长
+                TetrisPieceShape.Pentomino_U => U(),            // 5格  U形
+                TetrisPieceShape.Pentomino_T => T5(),           // 5格  T形长柄
+                TetrisPieceShape.Pentomino_P => P(),            // 5格  P形
+
+                // === 步枪/大型 (6-12格，矩形) ===
+                TetrisPieceShape.Cells9_Square  => Rect(3, 2),  // 6格  SMG
+                TetrisPieceShape.Cells16_Square => Rect(4, 2),  // 8格  卡宾枪
+                TetrisPieceShape.S_Sword        => Rect(5, 2),  // 10格 突击步枪
+                TetrisPieceShape.S_Shotgun      => Rect(3, 3),  // 9格  冲锋枪/大工艺品
+                TetrisPieceShape.S_Rifle        => Rect(6, 2),  // 12格 狙击步枪
+
+                _ => new List<Vector2Int>()
+            };
+        }
+
+        // ---- 形状工具方法 ----
+        private static List<Vector2Int> Rect(int w, int h) { var p = new List<Vector2Int>(w * h); for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) p.Add(new(x, y)); return p; }
+        private static List<Vector2Int> L(int h, bool mir) { var p = new List<Vector2Int>(); for (int y = 0; y < h; y++) p.Add(new(mir ? 1 : 0, y)); p.Add(new(mir ? 0 : 1, h - 1)); return p; }
+        private static List<Vector2Int> L3(bool mir) { var p = new List<Vector2Int>(); for (int y = 0; y < 3; y++) p.Add(new(mir ? 1 : 0, y)); p.Add(new(mir ? 0 : 1, 2)); return p; }
+        private static List<Vector2Int> T() => new() { new(1, 0), new(0, 1), new(1, 1), new(2, 1) };
+        private static List<Vector2Int> T5() => new() { new(0, 0), new(1, 0), new(2, 0), new(1, 1), new(1, 2) };
+        private static List<Vector2Int> U() => new() { new(0, 0), new(2, 0), new(0, 1), new(1, 1), new(2, 1) };
+        private static List<Vector2Int> P() => new() { new(0, 0), new(1, 0), new(0, 1), new(1, 1), new(0, 2) };
+        private static List<Vector2Int> ZigZag(bool z) => z ? new() { new(0, 0), new(1, 0), new(1, 1), new(2, 1) } : new() { new(1, 0), new(2, 0), new(0, 1), new(1, 1) };
 
         private void RotateItemGhost()
         {
@@ -243,6 +401,26 @@ namespace Cholopol.TIS
             return null;
         }
 
+        /// <summary>
+        /// 获取鼠标下方的 TetrisItemView（用于快捷键丢弃等操作）。
+        /// </summary>
+        private TetrisItemView GetTetrisItemViewUnderMouse()
+        {
+            PointerEventData eventData = new PointerEventData(EventSystem.current);
+            eventData.position = Mouse.current.position.ReadValue();
+
+            List<RaycastResult> results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventData, results);
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                var go = results[i].gameObject;
+                var view = go.GetComponentInParent<TetrisItemView>();
+                if (view != null) return view;
+            }
+            return null;
+        }
+
         // ====================== 世界容器网格管理 ======================
 
         /// <summary>
@@ -291,24 +469,35 @@ namespace Cholopol.TIS
         }
 
         /// <summary>
-        /// 获取当前可用的背包网格 VM（优先 depositoryGrid，其次 depositoryGridView.ViewModel）。
+        /// 获取当前可用的背包网格 VM。
+        /// 优先 depositoryGridView.ViewModel（最新），回退到缓存，最后才返回 null。
         /// </summary>
         private TetrisGridVM GetPlayerBagGridVM()
         {
-            if (depositoryGrid != null) return depositoryGrid;
+            // 优先使用 GridView 上最新的 ViewModel（CTIS 重开背包会换新 VM）
             if (depositoryGridView != null && depositoryGridView.ViewModel != null)
             {
                 depositoryGrid = depositoryGridView.ViewModel;
                 return depositoryGrid;
             }
+            // 回退：缓存的引用（仅在 GridView 未就绪时使用）
+            if (depositoryGrid != null) return depositoryGrid;
             return null;
         }
 
         /// <summary>
-        /// 将物品添加到玩家背包。如果背包网格未就绪则暂存到队列，等开背包后自动放入。
-        /// 放置时优先 IInventoryService.PlaceOnGrid（DebugWindow 模式），回退 TryPlaceTetrisItem。
+        /// 将物品添加到玩家背包（无实例数据，创建全新 VM）。
         /// </summary>
         public bool AddItemToPlayerBag(int itemID)
+        {
+            return AddItemToPlayerBag(itemID, null);
+        }
+
+        /// <summary>
+        /// 将物品添加到玩家背包，携带实例数据（Guid、堆叠数等）。
+        /// 丢弃→拾取链路中保持物品身份和未来词条/附魔不丢失。
+        /// </summary>
+        public bool AddItemToPlayerBag(int itemID, TetrisItemPersistentData data)
         {
             if (itemDataList_SO == null)
             {
@@ -323,23 +512,31 @@ namespace Cholopol.TIS
                 return false;
             }
 
+            // 背包关闭 → 一律走暂存队列，等开背包时 CTIS 创建完整的 VM+View 后再放入。
+            if (!IsInventoryOpen)
+            {
+                _pendingItems.Add(new PendingItem { itemID = itemID, data = data });
+                UnityEngine.Debug.Log($"[InventoryManager] 背包关闭，暂存 itemID={itemID}（队列 {_pendingItems.Count} 件），打开背包时放入");
+                return true;
+            }
+
             var gridVM = GetPlayerBagGridVM();
 
-            // 网格不可用 → 暂存，等开背包时 CTIS 创建 VM 后再放入
+            // 网格不可用 → 暂存
             if (gridVM == null)
             {
-                _pendingItems.Add(itemID);
+                _pendingItems.Add(new PendingItem { itemID = itemID, data = data });
                 UnityEngine.Debug.Log($"[InventoryManager] 网格未就绪，暂存 itemID={itemID}（队列 {_pendingItems.Count} 件），打开背包时放入");
                 return true;
             }
 
-            return TryPlaceItemOnGrid(details, itemID, gridVM);
+            return TryPlaceItemOnGrid(details, itemID, data, gridVM);
         }
 
         /// <summary>
-        /// 在指定网格上放置物品。返回是否成功。
+        /// 在指定网格上放置物品。data 为 null 时创建全新 VM，非 null 时用持久化数据恢复实例状态。
         /// </summary>
-        private bool TryPlaceItemOnGrid(ItemDetails details, int itemID, TetrisGridVM gridVM)
+        private bool TryPlaceItemOnGrid(ItemDetails details, int itemID, TetrisItemPersistentData data, TetrisGridVM gridVM)
         {
             // 物品尺寸检查
             if (details.xWidth <= 0 || details.yHeight <= 0)
@@ -349,7 +546,7 @@ namespace Cholopol.TIS
                     $"尺寸为 {details.xWidth}×{details.yHeight}，在网格中将不可见！请在 ItemDataList_SO 中设置 xWidth/yHeight");
             }
 
-            var itemVM = TetrisItemFactory.GetOrCreateVM(details, null, gridVM);
+            var itemVM = TetrisItemFactory.GetOrCreateVM(details, data, gridVM);
             if (itemVM == null)
             {
                 UnityEngine.Debug.LogError("[InventoryManager] 创建物品 VM 失败！");
@@ -395,165 +592,99 @@ namespace Cholopol.TIS
             return false;
         }
 
-        // ====================== 调试：OnGUI 网格可视化 ======================
-
-        [Header("Debug")]
-        [SerializeField] private bool _showDebugGrid = true;
-        [SerializeField] private int _debugGridCellSize = 22;
-        [SerializeField] private int _debugGridPadding = 8;
-
-        private void OnGUI()
+        /// <summary>
+        /// 丢弃物品：从背包网格中移除物品，并在玩家附近生成对应的 3D 预制体。
+        /// 保留物品实例数据（Guid、堆叠数、CustomData 等），未来加词条/附魔不会丢。
+        /// </summary>
+        public void DiscardItem(TetrisItemVM itemVM)
         {
-            if (!_showDebugGrid) return;
-            if (!IsInventoryOpen) return;
-
-            // 获取背包网格 VM
-            TetrisGridVM grid = depositoryGrid;
-            if (grid == null && depositoryGridView != null && depositoryGridView.ViewModel != null)
-                grid = depositoryGridView.ViewModel;
-            if (grid == null)
+            if (itemVM == null)
             {
-                GUI.Label(new Rect(10, 10, 400, 30), "[DEBUG GRID] 没有可用的背包网格 VM");
+                UnityEngine.Debug.LogError("[InventoryManager] DiscardItem: itemVM 为 null");
                 return;
             }
 
-            int w = grid.GridSizeWidth;
-            int h = grid.GridSizeHeight;
-            var cells = grid.TetrisItemOccupiedCells;
-            var items = grid.OwnerItemsDic;
-
-            int cellSize = _debugGridCellSize;
-            int padding = _debugGridPadding;
-            int panelW = w * cellSize + padding * 2;
-            int panelH = h * cellSize + padding * 2 + 28;
-            int startX = Screen.width - panelW - 20;
-            int startY = 20;
-
-            // 半透明背景
-            GUI.Box(new Rect(startX, startY, panelW, panelH), "");
-            GUI.Label(new Rect(startX + padding, startY + 4, panelW, 24),
-                $"<b>背包网格 [{w}×{h}]  物品:{items?.Count ?? 0}</b>");
-
-            int gridOriginX = startX + padding;
-            int gridOriginY = startY + 28;
-
-            if (cells == null)
+            var details = itemVM.ItemDetails;
+            if (details == null)
             {
-                GUI.Label(new Rect(gridOriginX, gridOriginY, panelW, 30),
-                    "<color=red>TetrisItemOccupiedCells == null</color>");
+                UnityEngine.Debug.LogError("[InventoryManager] DiscardItem: ItemDetails 为 null");
                 return;
             }
 
-            // 存储每个 item 的颜色映射
-            var colorMap = new Dictionary<string, Color>();
-            var palette = new Color[] {
-                new Color(0.3f, 0.7f, 0.3f),   // 绿
-                new Color(0.3f, 0.5f, 0.9f),   // 蓝
-                new Color(0.9f, 0.6f, 0.2f),   // 橙
-                new Color(0.8f, 0.3f, 0.3f),   // 红
-                new Color(0.7f, 0.3f, 0.9f),   // 紫
-                new Color(0.2f, 0.8f, 0.8f),   // 青
-                new Color(0.9f, 0.8f, 0.2f),   // 黄
-                new Color(0.5f, 0.5f, 0.5f),   // 灰
+            // 0. 在清理 VM 前捕获实例数据，丢弃→拾取链路中保持不变
+            var instanceData = new TetrisItemPersistentData
+            {
+                itemID = details.itemID,
+                itemGuid = itemVM.Guid,
+                direction = itemVM.Direction,
+                stack = itemVM.CurrentStack,
             };
-            int paletteIdx = 0;
 
-            // 先给每个 item 分配颜色
-            if (items != null)
+            // 1. 从网格中移除（会清理 OccupiedCells、OwnerItemsDic，并触发视图回收）
+            var gridVM = itemVM.CurrentTetrisContainer as TetrisGridVM;
+            if (gridVM != null)
             {
-                foreach (var kv in items)
-                {
-                    if (!colorMap.ContainsKey(kv.Key))
-                        colorMap[kv.Key] = palette[paletteIdx++ % palette.Length];
-                }
+                var pos = itemVM.LocalGridCoordinate;
+                var coords = itemVM.TetrisCoordinateSet;
+                var offset = itemVM.RotationOffset;
+                gridVM.RemoveTetrisItem(itemVM, pos.x, pos.y, offset, coords, destroyView: true);
             }
 
-            // 绘制格子
-            var occupiedSet = new HashSet<string>(); // 已画过的 item（只画第一个 cell 的名字）
-            for (int row = 0; row < h; row++)
+            // 2. 从持久化数据中删除（否则重开背包会恢复）
+            if (!string.IsNullOrEmpty(itemVM.Guid))
             {
-                for (int col = 0; col < w; col++)
+                var saveLoad = InventorySaveLoadService.Instance;
+                if (saveLoad != null && saveLoad.inventoryData_SO != null)
                 {
-                    int cx = gridOriginX + col * cellSize;
-                    int cy = gridOriginY + row * cellSize;
-                    Rect cellRect = new Rect(cx, cy, cellSize, cellSize);
-
-                    var item = cells[col, row]; // 注意：cells 索引是 [x, y]
-                    if (item != null)
-                    {
-                        string guid = item.Guid;
-                        if (!colorMap.ContainsKey(guid))
-                            colorMap[guid] = palette[paletteIdx++ % palette.Length];
-
-                        Color bg = colorMap[guid];
-                        GUI.color = bg;
-                        GUI.Box(cellRect, "");
-                        GUI.color = Color.white;
-
-                        // 只在该 item 的第一个 cell 上画名字
-                        if (!occupiedSet.Contains(guid))
-                        {
-                            occupiedSet.Add(guid);
-                            string label = item.ItemDetails != null
-                                ? item.ItemDetails.itemID.ToString()
-                                : "?";
-                            GUI.Label(new Rect(cx, cy, cellSize * item.Width, 16),
-                                $"<b><size=10>{label}</size></b>");
-                        }
-                    }
-                    else
-                    {
-                        GUI.color = new Color(0.15f, 0.15f, 0.15f, 0.6f);
-                        GUI.Box(cellRect, "");
-                        GUI.color = Color.white;
-                    }
-
-                    // 边框线
-                    GUI.color = new Color(0.3f, 0.3f, 0.3f, 0.5f);
-                    GUI.Box(cellRect, "");
-                    GUI.color = Color.white;
+                    saveLoad.inventoryData_SO.RemovePersistentDataByGuid(itemVM.Guid);
                 }
+                TetrisItemFactory.UnregisterVM(itemVM.Guid, removeViews: true);
             }
 
-            // 右侧物品图例
-            int legendX = gridOriginX + w * cellSize + 14;
-            int legendY = gridOriginY;
-            if (items != null && items.Count > 0)
+            // 3. 在世界中生成预制体，注入 pickUpItemID + 实例数据
+            if (details.itemEntity != null)
             {
-                GUI.Label(new Rect(legendX, legendY, 180, 20), "<b>物品列表:</b>");
-                legendY += 18;
-                foreach (var kv in items)
+                var player = GameObject.FindGameObjectWithTag("Player");
+                Vector3 dropPos;
+                if (player != null)
                 {
-                    var vm = kv.Value;
-                    string name = vm.ItemDetails?.localizedName?.GetLocalizedString() ?? "?";
-                    int id = vm.ItemDetails?.itemID ?? -1;
-                    string dim = $"{vm.Width}×{vm.Height}";
-                    var pos = vm.LocalGridCoordinate;
-
-                    GUI.color = colorMap.ContainsKey(kv.Key) ? colorMap[kv.Key] : Color.gray;
-                    GUI.Box(new Rect(legendX, legendY, 10, 14), "");
-                    GUI.color = Color.white;
-                    GUI.Label(new Rect(legendX + 14, legendY, 200, 16),
-                        $"<size=10>ID:{id} {name} {dim} ({pos.x},{pos.y})</size>");
-                    legendY += 16;
+                    // 在玩家前方 1.5m 处生成
+                    dropPos = player.transform.position + player.transform.forward * 1.5f + Vector3.up * 0.3f;
                 }
+                else
+                {
+                    dropPos = Vector3.zero;
+                    UnityEngine.Debug.LogWarning("[InventoryManager] DiscardItem: 找不到 Player，在原点生成");
+                }
+
+                var spawned = Instantiate(details.itemEntity, dropPos, details.itemEntity.transform.rotation);
+
+                // 注入 pickUpItemID，使丢弃物可被再次拾取
+                var pickup = spawned.GetComponent<InteractiveObjectBase>();
+                if (pickup != null)
+                {
+                    pickup.pickUpItemID = details.itemID;
+                    pickup.discardData = instanceData;
+                }
+                else
+                {
+                    UnityEngine.Debug.LogWarning(
+                        $"[InventoryManager] 丢弃的预制体 {details.itemEntity.name} 上没有 InteractiveObjectBase 组件，" +
+                        $"物品将无法被拾取！");
+                }
+
+                UnityEngine.Debug.Log(
+                    $"[InventoryManager] 丢弃: {details.localizedName.GetLocalizedString()} " +
+                    $"(ID:{details.itemID} | {details.itemRarity} | Guid:{instanceData.itemGuid}) → 世界坐标 {dropPos}");
             }
-
-            // 待处理队列
-            if (_pendingItems.Count > 0)
+            else
             {
-                legendY += 6;
-                GUI.Label(new Rect(legendX, legendY, 200, 20),
-                    $"<color=yellow><b>暂存队列: {_pendingItems.Count}</b></color>");
-                legendY += 18;
-                foreach (var pid in _pendingItems)
-                {
-                    GUI.Label(new Rect(legendX, legendY, 200, 14),
-                        $"<size=10>ID:{pid}</size>");
-                    legendY += 14;
-                }
+                UnityEngine.Debug.LogWarning(
+                    $"[InventoryManager] 丢弃: {details.localizedName.GetLocalizedString()} " +
+                    $"(ID:{details.itemID}) 没有 itemEntity 预制体，物品已销毁");
             }
         }
+
 
         /// <summary>
         /// [ContextMenu] 将背包网格状态以 ASCII 形式输出到 Console。
@@ -646,21 +777,21 @@ namespace Cholopol.TIS
             }
 
             UnityEngine.Debug.Log($"[InventoryManager] 处理 {_pendingItems.Count} 件暂存物品...");
-            var copy = new List<int>(_pendingItems);
+            var copy = new List<PendingItem>(_pendingItems);
             _pendingItems.Clear();
 
-            foreach (var id in copy)
+            foreach (var p in copy)
             {
-                var details = itemDataList_SO.GetItemDetailsByID(id);
+                var details = itemDataList_SO.GetItemDetailsByID(p.itemID);
                 if (details == null) continue;
 
-                if (TryPlaceItemOnGrid(details, id, gridVM))
+                if (TryPlaceItemOnGrid(details, p.itemID, p.data, gridVM))
                 {
-                    UnityEngine.Debug.Log($"[InventoryManager] 暂存物品入背包: {details.localizedName.GetLocalizedString()} (ID={id})");
+                    UnityEngine.Debug.Log($"[InventoryManager] 暂存物品入背包: {details.localizedName.GetLocalizedString()} (ID={p.itemID})");
                 }
                 else
                 {
-                    UnityEngine.Debug.LogWarning($"[InventoryManager] 暂存物品放置失败: {details.localizedName.GetLocalizedString()} (ID={id})");
+                    UnityEngine.Debug.LogWarning($"[InventoryManager] 暂存物品放置失败: {details.localizedName.GetLocalizedString()} (ID={p.itemID})");
                 }
             }
         }

@@ -187,6 +187,12 @@ public class Outlines : MonoBehaviour {
         continue;
       }
 
+      // Skip meshes that don't have Read/Write enabled (e.g. imported models)
+      if (!meshFilter.sharedMesh.isReadable)
+      {
+        continue;
+      }
+
       // Retrieve or generate smooth normals
       var index = bakeKeys.IndexOf(meshFilter.sharedMesh);
       var smoothNormals = (index >= 0) ? bakeValues[index].data : SmoothNormals(meshFilter.sharedMesh);
@@ -207,6 +213,12 @@ public class Outlines : MonoBehaviour {
 
       // Skip if UV3 has already been reset
       if (!registeredMeshes.Add(skinnedMeshRenderer.sharedMesh)) {
+        continue;
+      }
+
+      // Skip meshes that don't have Read/Write enabled
+      if (!skinnedMeshRenderer.sharedMesh.isReadable)
+      {
         continue;
       }
 

@@ -20,9 +20,14 @@ public class AmmoPickup : InteractiveObjectBase
                 return;
             }
 
-            if (im.AddItemToPlayerBag(pickUpItemID))
+            bool success = discardData != null
+                ? im.AddItemToPlayerBag(pickUpItemID, discardData)
+                : im.AddItemToPlayerBag(pickUpItemID);
+
+            if (success)
             {
                 isUsed = true;
+                Destroy(gameObject);
                 UnityEngine.Debug.Log($"[AmmoPickup] ✓ 拾取成功: {objectName}");
             }
             else

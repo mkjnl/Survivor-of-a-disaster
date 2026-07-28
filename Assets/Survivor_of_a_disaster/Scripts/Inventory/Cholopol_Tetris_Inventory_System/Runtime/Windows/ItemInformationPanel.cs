@@ -165,30 +165,7 @@ namespace Cholopol.TIS
         public void SetItemImage(Sprite newSprite)
         {
             itemImage.sprite = newSprite;
-            itemImage.SetNativeSize();
-
-            // Force layout update if parent size is invalid
-            if (itemImageParentRect.rect.width == 0 || itemImageParentRect.rect.height == 0)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(panelRect);
-            }
-
-            Vector2 maxSize = new Vector2(
-                itemImageParentRect.rect.width,
-                itemImageParentRect.rect.height
-            );
-
-            if (maxSize.x > 0 && maxSize.y > 0)
-            {
-                if (itemImageRect.sizeDelta.x > maxSize.x || itemImageRect.sizeDelta.y > maxSize.y)
-                {
-                    float widthRatio = maxSize.x / itemImageRect.sizeDelta.x;
-                    float heightRatio = maxSize.y / itemImageRect.sizeDelta.y;
-                    float scaleFactor = Mathf.Min(widthRatio, heightRatio);
-
-                    itemImageRect.sizeDelta *= scaleFactor;
-                }
-            }
+            itemImage.preserveAspect = true;
         }
         public void SetContent(Sprite sprite, string name, string description)
         {

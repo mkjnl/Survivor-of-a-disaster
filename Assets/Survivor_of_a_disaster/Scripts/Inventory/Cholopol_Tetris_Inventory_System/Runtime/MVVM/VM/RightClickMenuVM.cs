@@ -27,12 +27,14 @@ namespace Cholopol.TIS.MVVM.ViewModels
 
         public readonly InteractionRequest<ItemDetails> ShowInfoRequest = new();
         public readonly InteractionRequest<TetrisItemVM> OpenPanelRequest = new();
+        public readonly InteractionRequest<TetrisItemVM> DiscardRequest = new();
         public readonly InteractionRequest<object> CloseRequest = new();
 
         public SimpleCommand CheckCommand { get; private set; }
         public SimpleCommand SplitCommand { get; private set; }
         public SimpleCommand UseCommand { get; private set; }
         public SimpleCommand OpenCommand { get; private set; }
+        public SimpleCommand DiscardCommand { get; private set; }
 
         public RightClickMenuVM()
         {
@@ -40,6 +42,7 @@ namespace Cholopol.TIS.MVVM.ViewModels
             SplitCommand = new SimpleCommand(OnSplit);
             UseCommand = new SimpleCommand(OnUse);
             OpenCommand = new SimpleCommand(OnOpen);
+            DiscardCommand = new SimpleCommand(OnDiscard);
         }
 
         private void OnCheck()
@@ -65,6 +68,14 @@ namespace Cholopol.TIS.MVVM.ViewModels
         private void OnUse()
         {
             if (_currentItem == null) return;
+            CloseRequest.Raise(null);
+        }
+
+        private void OnDiscard()
+        {
+            var item = _currentItem;
+            if (item == null) return;
+            DiscardRequest.Raise(item);
             CloseRequest.Raise(null);
         }
 

@@ -64,6 +64,13 @@ public abstract class InteractiveObjectBase : MonoBehaviour
     [HideInInspector]
     public int pickUpItemID = -1; // -1=未注入，≥0 为有效 itemID
 
+    /// <summary>
+    /// 丢弃物携带的实例数据（Guid、堆叠数、CustomData 等）。
+    /// 拾取时会优先用此数据还原物品状态，保证词条/附魔不丢失。
+    /// </summary>
+    [HideInInspector]
+    public TetrisItemPersistentData discardData;
+
     [Header("状态")]
     [Tooltip("是否已被交互过（true=已经交互过，再次交互不会重复执行逻辑）")]
     public bool isUsed;

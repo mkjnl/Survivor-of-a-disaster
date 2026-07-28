@@ -110,7 +110,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 809022284935168
-    m_Localized: New Item
+    m_Localized: UDL-SIGM18
     m_Metadata:
       m_Items: []
   - m_Id: 809022960218112
@@ -170,6 +170,14 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 56584282489786368
+    m_Localized: 
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68545711040139264
+    m_Localized: "Valen-\u6218\u672F\u80CC\u5305"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68545712122269696
     m_Localized: 
     m_Metadata:
       m_Items: []
